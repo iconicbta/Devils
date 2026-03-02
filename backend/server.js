@@ -9,8 +9,8 @@ const app = express();
     🔹 CORS FIX DEFINITIVO PARA RENDER + AXIOS
 ====================================================== */
 const allowedOrigins = [
-  "https://frontendiconic.vercel.app",
-  /^https:\/\/frontendiconic.*\.vercel\.app$/,
+  "https://devils2.vercel.app",
+  /^https:\/\/devils2.*\.vercel\.app$/,
   "http://localhost:3000",
 ];
 
@@ -134,3 +134,4 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
