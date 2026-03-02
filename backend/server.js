@@ -8,10 +8,11 @@ const app = express();
 /* ======================================================
     🔹 CORS FIX DEFINITIVO PARA RENDER + AXIOS
 ====================================================== */
+// Busca esta lista en tu server.js
 const allowedOrigins = [
-  "https://devils2.vercel.app",
-  /^https:\/\/devils2.*\.vercel\.app$/,
-  "http://localhost:3000",
+  "https://devils2.vercel.app", // Asegúrate que sea EXACTAMENTE esta
+  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app", // URL de previsualización
+  "http://localhost:3000"
 ];
 
 app.use((req, res, next) => {
@@ -134,4 +135,5 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
