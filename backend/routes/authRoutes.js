@@ -21,6 +21,6 @@ router.post("/register", authController.register);
 // @desc    Actualizar datos del usuario autenticado
 // @route   PUT /api/auth/update
 // @access  Private
-router.put("/update", protect, authController.update); // Añadido el método update
+router.put("/update", protect, authController.update);
 
 module.exports = router;
