@@ -17,12 +17,12 @@ const allowedOrigins = [
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  // Verificamos si el origen está permitido
+  // Verificamos si el origen de la petición está en nuestra lista de permitidos
   if (allowedOrigins.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Access-Control-Allow-Credentials", "true");
   } else if (!origin) {
-    // Esto permite peticiones que no vienen de un navegador (como Postman o el Health Check)
+    // Permite peticiones sin origen (útil para herramientas de prueba o el Health Check de Render)
     res.header("Access-Control-Allow-Origin", "*");
   }
 
@@ -35,7 +35,8 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token"
   );
 
-  // IMPORTANTE: Responder inmediatamente a la petición pre-vuelo (OPTIONS)
+  // ⚠️ CRÍTICO: Responder inmediatamente con 200 OK a la petición pre-vuelo (OPTIONS)
+  // Si no haces esto, el navegador marcará "timeout" o "CORS error"
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -135,6 +136,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
 
 
