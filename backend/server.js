@@ -6,27 +6,26 @@ const { protect } = require("./middleware/authMiddleware");
 const app = express();
 
 /* ======================================================
-    🔹 CORS FIX DEFINITIVO PARA RENDER + AXIOS
+    🔹 CORS FIX DEFINITIVO (CORREGIDO)
 ====================================================== */
-// Busca esta lista en tu server.js
 const allowedOrigins = [
-  "https://devils2.vercel.app", // Asegúrate que sea EXACTAMENTE esta
-  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app", // URL de previsualización
+  "https://devils2.vercel.app",
+  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app",
   "http://localhost:3000"
 ];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const isAllowed = allowedOrigins.some((pattern) =>
-    typeof pattern === "string"
-      ? pattern === origin
-      : pattern.test(origin)
-  );
-  res.header("Vary", "Origin");
-  if (isAllowed) {
+
+  // Verificamos si el origen está permitido
+  if (allowedOrigins.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Access-Control-Allow-Credentials", "true");
+  } else if (!origin) {
+    // Esto permite peticiones que no vienen de un navegador (como Postman o el Health Check)
+    res.header("Access-Control-Allow-Origin", "*");
   }
+
   res.header(
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,DELETE,PATCH,OPTIONS"
@@ -35,12 +34,13 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token"
   );
+
+  // IMPORTANTE: Responder inmediatamente a la petición pre-vuelo (OPTIONS)
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
+    return res.status(200).end();
   }
   next();
 });
-
 /* ======================================================
     🔹 Seguridad y Body Parser
 ====================================================== */
@@ -135,5 +135,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
 
