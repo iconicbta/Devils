@@ -15,8 +15,15 @@ const clienteSchema = new mongoose.Schema({
   eps: { type: String, default: "" },
   tallaTrenSuperior: { type: String, default: "" },
   tallaTrenInferior: { type: String, default: "" },
+
   nombreResponsable: { type: String, default: "" },
-  especialidad: { type: String, required: true }, // Cambiado de equipo a especialidad
+
+  numeroContactoResponsable: { 
+    type: String,
+    default: ""
+  },
+
+  especialidad: { type: String, required: true }
 });
 
 module.exports = mongoose.model("Cliente", clienteSchema);
