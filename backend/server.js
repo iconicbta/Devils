@@ -6,20 +6,49 @@ const { connectDB } = require("./config/db");
 const { protect } = require("./middleware/authMiddleware");
 const app = express();
 /* ======================================================
-    🔹 CORS FIX DEFINITIVO (CORREGIDO)
+    🔹 CORS FIX DEFINITIVO (COPIADO DEL PROYECTO FUNCIONAL)
 ====================================================== */
 const allowedOrigins = [
   "https://devils2.vercel.app",
-  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app",
-  "http://localhost:3000"
+  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app", // Tu dominio de deploy
+  /^https:\/\/devils2.*\.vercel\.app$/, // Esto permite cualquier rama de Vercel
+  "http://localhost:3000",
 ];
 
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Verificar si el origen está permitido (soporta strings y regex)
+  const isAllowed = allowedOrigins.some((pattern) =>
+    typeof pattern === "string"
+      ? pattern === origin
+      : pattern.test(origin)
+  );
 
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+  res.header("Vary", "Origin");
 
+  if (isAllowed) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+  );
+  
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token"
+  );
+
+  // IMPORTANTE: Responder inmediatamente a la petición preflight
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 /* ======================================================
     🔹 Seguridad y Body Parser
 ====================================================== */
@@ -114,6 +143,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
 
 
