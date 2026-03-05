@@ -1,62 +1,56 @@
 // backend/server.js
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const { connectDB } = require("./config/db");
 const { protect } = require("./middleware/authMiddleware");
 const app = express();
+// backend/server.js
+require("dotenv").config();
+const express = require("express");
+// ❌ ELIMINADO: const cors = require("cors"); (Ya no es necesario)
+const { connectDB } = require("./config/db");
+const { protect } = require("./middleware/authMiddleware");
+const app = express();
+
 /* ======================================================
-    🔹 CORS FIX DEFINITIVO (COPIADO DEL PROYECTO FUNCIONAL)
+    🔹 CORS FIX DEFINITIVO (MANUAL)
 ====================================================== */
 const allowedOrigins = [
   "https://devils2.vercel.app",
-  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app", // Tu dominio de deploy
-  /^https:\/\/devils2.*\.vercel\.app$/, // Esto permite cualquier rama de Vercel
+  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app",
+  /^https:\/\/devils2.*\.vercel\.app$/,
   "http://localhost:3000",
 ];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
-  // Verificar si el origen está permitido (soporta strings y regex)
   const isAllowed = allowedOrigins.some((pattern) =>
-    typeof pattern === "string"
-      ? pattern === origin
-      : pattern.test(origin)
+    typeof pattern === "string" ? pattern === origin : pattern.test(origin)
   );
-
-  res.header("Vary", "Origin");
 
   if (isAllowed) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Access-Control-Allow-Credentials", "true");
   }
 
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,PATCH,OPTIONS"
-  );
-  
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token"
-  );
+  res.header("Vary", "Origin");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token");
 
-  // IMPORTANTE: Responder inmediatamente a la petición preflight
+  // Responder inmediatamente a la petición preflight (Crucial para Vercel/Render)
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
-  
   next();
 });
+
 /* ======================================================
-    🔹 Seguridad y Body Parser
+    🔹 Seguridad y Body Parser (DESPUÉS DEL CORS)
 ====================================================== */
 app.set("trust proxy", true);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-/* ======================================================
+// ... resto del código igual/* ======================================================
     🔹 Logger
 ====================================================== */
 app.use((req, res, next) => {
@@ -143,6 +137,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
 
 
