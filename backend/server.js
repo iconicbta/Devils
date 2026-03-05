@@ -4,40 +4,36 @@ const express = require("express");
 const { connectDB } = require("./config/db");
 const { protect } = require("./middleware/authMiddleware");
 const app = express();
-// backend/server.js
-require("dotenv").config();
-const express = require("express");
-// ❌ ELIMINADO: const cors = require("cors"); (Ya no es necesario)
-const { connectDB } = require("./config/db");
-const { protect } = require("./middleware/authMiddleware");
-const app = express();
 
 /* ======================================================
-    🔹 CORS FIX DEFINITIVO (MANUAL)
+    🔹 CORS FIX DEFINITIVO PARA RENDER + AXIOS
 ====================================================== */
 const allowedOrigins = [
   "https://devils2.vercel.app",
-  "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app",
-  /^https:\/\/devils2.*\.vercel\.app$/,
+   /^https:\/\/devils2.*\.vercel\.app$/,
   "http://localhost:3000",
 ];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   const isAllowed = allowedOrigins.some((pattern) =>
-    typeof pattern === "string" ? pattern === origin : pattern.test(origin)
+    typeof pattern === "string"
+      ? pattern === origin
+      : pattern.test(origin)
   );
-
+  res.header("Vary", "Origin");
   if (isAllowed) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Access-Control-Allow-Credentials", "true");
   }
-
-  res.header("Vary", "Origin");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token");
-
-  // Responder inmediatamente a la petición preflight (Crucial para Vercel/Render)
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,PATCH,OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token"
+  );
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
@@ -45,12 +41,13 @@ app.use((req, res, next) => {
 });
 
 /* ======================================================
-    🔹 Seguridad y Body Parser (DESPUÉS DEL CORS)
+    🔹 Seguridad y Body Parser
 ====================================================== */
 app.set("trust proxy", true);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-// ... resto del código igual/* ======================================================
+
+/* ======================================================
     🔹 Logger
 ====================================================== */
 app.use((req, res, next) => {
@@ -137,13 +134,3 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
-
-
-
-
-
-
-
-
-
-
