@@ -13,7 +13,7 @@ const allowedOrigins = [
   "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app",
   "http://localhost:3000"
 ];
-const cors = require("cors");
+
 
 app.use(cors({
   origin: true,
@@ -114,6 +114,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
 
 
