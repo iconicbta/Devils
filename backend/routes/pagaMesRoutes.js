@@ -7,6 +7,11 @@ const {
     registrarPagoMes 
 } = require("../controllers/pagaMesController");
 
+/* 🔹 Permitir preflight OPTIONS */
+router.options("*", (req, res) => {
+    res.sendStatus(200);
+});
+
 router.get("/anios", obtenerAnios);
 router.post("/crear-anio", crearAnio);
 router.get("/pagos/:anio", obtenerPagosPorAnio);
