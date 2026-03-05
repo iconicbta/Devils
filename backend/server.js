@@ -1,10 +1,10 @@
 // backend/server.js
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const { connectDB } = require("./config/db");
 const { protect } = require("./middleware/authMiddleware");
 const app = express();
-
 /* ======================================================
     🔹 CORS FIX DEFINITIVO (CORREGIDO)
 ====================================================== */
@@ -13,6 +13,10 @@ const allowedOrigins = [
   "https://devils2-git-main-alfredos-projects-a028b04c.vercel.app",
   "http://localhost:3000"
 ];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
@@ -31,15 +35,15 @@ app.use((req, res, next) => {
     "GET,POST,PUT,DELETE,PATCH,OPTIONS"
   );
   res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-xsrf-token, x-access-token"
-  );
-
+  "Access-Control-Allow-Headers",
+  "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+);
   // ⚠️ CRÍTICO: Responder inmediatamente con 200 OK a la petición pre-vuelo (OPTIONS)
   // Si no haces esto, el navegador marcará "timeout" o "CORS error"
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+  res.sendStatus(204);
+  return;
+}
   next();
 });
 /* ======================================================
@@ -136,6 +140,7 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
 );
+
 
 
 
