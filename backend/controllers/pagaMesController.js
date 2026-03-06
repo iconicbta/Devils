@@ -72,24 +72,25 @@ const registrarPagoMes = async (req, res) => {
 
     // Crear registro en contabilidad
     const transaccion = new Contabilidad({
-      tipo: "ingreso",
-      monto: total,
-      fecha: new Date(),
-      descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
-      categoria: "Mensualidades",
-      cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
-      cuentaCredito: "Ingresos Mensualidades",
-      referencia: `PAGO-${nuevoPago._id}`,
-      metodoPago: tipoPago,
-    });
+  tipo: "ingreso",
+  monto: total,
+  fecha: new Date(),
+  descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
+  categoria: "Mensualidades",
+  cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
+  cuentaCredito: "Ingresos Mensualidades",
+  referencia: `PAGO-${nuevoPago._id}`,
+  metodoPago: tipoPago,
+  creadoPor: req.user ? req.user._id : null
+});
 
     await transaccion.save();
 
     res.status(201).json(nuevoPago);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al registrar pago" });
-  }
+  console.error("Error registrarPagoMes:", error);
+  res.status(500).json({ message: "Error al registrar pago", error: error.message });
+}
 };
 
 module.exports = {
