@@ -1,4 +1,5 @@
 const PagaMes = require("../models/pagaMesModels");
+const Contabilidad = require("../models/Contabilidad");
 
 // Obtener los años registrados (Equivalente a meses en Ligas)
 const obtenerAnios = async (req, res) => {
@@ -54,8 +55,37 @@ const registrarPagoMes = async (req, res) => {
       tipoPago,
     });
 
+   const registrarPagoMes = async (req, res) => {
+  try {
+    const { nombre, anio, plan, total, mesesPagados, tipoPago } = req.body;
+
+    const nuevoPago = new PagaMes({
+      nombre: nombre.trim().toUpperCase(),
+      anio,
+      plan,
+      total,
+      mesesPagados,
+      tipoPago,
+    });
+
     await nuevoPago.save();
+
+    const transaccion = new Contabilidad({
+      tipo: "ingreso",
+      monto: total,
+      fecha: new Date(),
+      descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
+      categoria: "Mensualidades",
+      cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
+      cuentaCredito: "Ingresos Mensualidades",
+      referencia: `PAGO-${nuevoPago._id}`,
+      metodoPago: tipoPago
+    });
+
+    await transaccion.save();
+
     res.status(201).json(nuevoPago);
+
   } catch (error) {
     res.status(500).json({ message: "Error al registrar pago" });
   }
