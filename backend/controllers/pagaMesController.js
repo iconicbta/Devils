@@ -81,6 +81,7 @@ const registrarPagoMes = async (req, res) => {
     });
 
     await nuevoPago.save();
+    const usuario = await User.findOne();
 
     // Registrar ingreso en contabilidad
     const transaccion = new Contabilidad({
