@@ -5,12 +5,14 @@ const Contabilidad = require("../models/Contabilidad");
 const obtenerAnios = async (req, res) => {
   try {
     const anios = await PagaMes.distinct("anio");
+
     res.json(
       anios
         .sort((a, b) => b - a)
         .map((a) => ({ _id: a, nombre: a }))
     );
   } catch (error) {
+    console.error("Error obtenerAnios:", error);
     res.status(500).json({ message: "Error al obtener años" });
   }
 };
@@ -20,6 +22,7 @@ const crearAnio = async (req, res) => {
     const { nombre } = req.body;
 
     const existe = await PagaMes.findOne({ anio: nombre, nombre: "SYSTEM" });
+
     if (existe) {
       return res.status(400).json({ message: "El año ya existe" });
     }
@@ -38,7 +41,9 @@ const crearAnio = async (req, res) => {
       message: "Año creado correctamente",
       nombre,
     });
+
   } catch (error) {
+    console.error("Error crearAnio:", error);
     res.status(500).json({ message: "Error al crear año" });
   }
 };
@@ -50,13 +55,16 @@ const obtenerPagosPorAnio = async (req, res) => {
     const pagos = await PagaMes.find({ anio }).sort({ createdAt: -1 });
 
     res.json(pagos);
+
   } catch (error) {
+    console.error("Error obtenerPagosPorAnio:", error);
     res.status(500).json({ message: "Error al obtener pagos" });
   }
 };
 
 const registrarPagoMes = async (req, res) => {
   try {
+
     const { nombre, anio, plan, total, mesesPagados, tipoPago } = req.body;
 
     const nuevoPago = new PagaMes({
@@ -70,27 +78,37 @@ const registrarPagoMes = async (req, res) => {
 
     await nuevoPago.save();
 
-    // Crear registro en contabilidad
-    const transaccion = new Contabilidad({
-  tipo: "ingreso",
-  monto: total,
-  fecha: new Date(),
-  descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
-  categoria: "Mensualidades",
-  cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
-  cuentaCredito: "Ingresos Mensualidades",
-  referencia: `PAGO-${nuevoPago._id}`,
-  metodoPago: tipoPago,
-  creadoPor: req.user ? req.user._id : null
-});
+    // Crear registro contable SOLO si hay usuario autenticado
+    if (req.user && req.user._id) {
 
-    await transaccion.save();
+      const transaccion = new Contabilidad({
+        tipo: "ingreso",
+        monto: total,
+        fecha: new Date(),
+        descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
+        categoria: "Mensualidades",
+        cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
+        cuentaCredito: "Ingresos Mensualidades",
+        referencia: `PAGO-${nuevoPago._id}`,
+        metodoPago: tipoPago,
+        creadoPor: req.user._id
+      });
+
+      await transaccion.save();
+    }
 
     res.status(201).json(nuevoPago);
+
   } catch (error) {
-  console.error("Error registrarPagoMes:", error);
-  res.status(500).json({ message: "Error al registrar pago", error: error.message });
-}
+
+    console.error("Error registrarPagoMes:", error);
+
+    res.status(500).json({
+      message: "Error al registrar pago",
+      error: error.message
+    });
+
+  }
 };
 
 module.exports = {
