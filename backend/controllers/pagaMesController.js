@@ -82,21 +82,19 @@ const registrarPagoMes = async (req, res) => {
     if (req.user && req.user._id) {
 
       const transaccion = new Contabilidad({
-        tipo: "ingreso",
-        monto: total,
-        fecha: new Date(),
-        descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
-        categoria: "Mensualidades",
-        cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
-        cuentaCredito: "Ingresos Mensualidades",
-        referencia: `PAGO-${nuevoPago._id}`,
-        metodoPago: tipoPago,
-        creadoPor: req.user._id
-      });
+  tipo: "ingreso",
+  monto: total,
+  fecha: new Date(),
+  descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
+  categoria: "Mensualidades",
+  cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
+  cuentaCredito: "Ingresos Mensualidades",
+  referencia: `PAGO-${nuevoPago._id}`,
+  metodoPago: tipoPago,
+  creadoPor: null
+});
 
-      await transaccion.save();
-    }
-
+await transaccion.save();
     res.status(201).json(nuevoPago);
 
   } catch (error) {
