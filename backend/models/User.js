@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     },
     rol: {
       type: String,
-      enum: ["user", "admin", "entrenador"],
+      enum: ["user", "admin", "entrenador" , "recepcionista"],
       default: "user",
     },
   },
@@ -50,3 +50,4 @@ userSchema.methods.compararPassword = async function (password) {
 };
 
 module.exports = mongoose.model("User", userSchema);
+
