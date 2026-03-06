@@ -24,15 +24,12 @@ router.post(
       return res.status(400).json({ message: "El usuario ya existe" });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashed = await bcrypt.hash(password, salt);
-
     const nuevo = new User({
-      nombre,
-      email,
-      password: hashed,
-      rol: rol || "user",
-    });
+  nombre,
+  email,
+  password,
+  rol: rol || "user",
+});
 
     await nuevo.save();
 
@@ -107,3 +104,4 @@ router.delete(
 );
 
 module.exports = router;
+
