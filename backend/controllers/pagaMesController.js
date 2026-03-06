@@ -17,6 +17,7 @@ const obtenerAnios = async (req, res) => {
   }
 };
 
+// Crear año
 const crearAnio = async (req, res) => {
   try {
     const { nombre } = req.body;
@@ -48,6 +49,7 @@ const crearAnio = async (req, res) => {
   }
 };
 
+// Obtener pagos por año
 const obtenerPagosPorAnio = async (req, res) => {
   try {
     const { anio } = req.params;
@@ -62,6 +64,7 @@ const obtenerPagosPorAnio = async (req, res) => {
   }
 };
 
+// Registrar pago
 const registrarPagoMes = async (req, res) => {
   try {
 
@@ -78,23 +81,22 @@ const registrarPagoMes = async (req, res) => {
 
     await nuevoPago.save();
 
-    // Crear registro contable SOLO si hay usuario autenticado
-    if (req.user && req.user._id) {
+    // Registrar ingreso en contabilidad
+    const transaccion = new Contabilidad({
+      tipo: "ingreso",
+      monto: total,
+      fecha: new Date(),
+      descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
+      categoria: "Mensualidades",
+      cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
+      cuentaCredito: "Ingresos Mensualidades",
+      referencia: `PAGO-${nuevoPago._id}`,
+      metodoPago: tipoPago,
+      creadoPor: null
+    });
 
-      const transaccion = new Contabilidad({
-  tipo: "ingreso",
-  monto: total,
-  fecha: new Date(),
-  descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
-  categoria: "Mensualidades",
-  cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
-  cuentaCredito: "Ingresos Mensualidades",
-  referencia: `PAGO-${nuevoPago._id}`,
-  metodoPago: tipoPago,
-  creadoPor: null
-});
+    await transaccion.save();
 
-await transaccion.save();
     res.status(201).json(nuevoPago);
 
   } catch (error) {
