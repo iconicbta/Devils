@@ -1,11 +1,15 @@
 const PagaMes = require("../models/pagaMesModels");
 const Contabilidad = require("../models/Contabilidad");
 
-// Obtener los años registrados (Equivalente a meses en Ligas)
+// Obtener los años registrados
 const obtenerAnios = async (req, res) => {
   try {
     const anios = await PagaMes.distinct("anio");
-    res.json(anios.sort((a, b) => b - a).map(a => ({ _id: a, nombre: a })));
+    res.json(
+      anios
+        .sort((a, b) => b - a)
+        .map((a) => ({ _id: a, nombre: a }))
+    );
   } catch (error) {
     res.status(500).json({ message: "Error al obtener años" });
   }
@@ -13,20 +17,27 @@ const obtenerAnios = async (req, res) => {
 
 const crearAnio = async (req, res) => {
   try {
-    const { nombre } = req.body; // El "nombre" aquí es el año (ej: 2026)
+    const { nombre } = req.body;
+
     const existe = await PagaMes.findOne({ anio: nombre, nombre: "SYSTEM" });
-    if (existe) return res.status(400).json({ message: "El año ya existe" });
+    if (existe) {
+      return res.status(400).json({ message: "El año ya existe" });
+    }
 
     const registro = new PagaMes({
       nombre: "SYSTEM",
       anio: nombre,
       total: 0,
       mesesPagados: [],
-      tipoPago: 'SYSTEM',
+      tipoPago: "SYSTEM",
     });
 
     await registro.save();
-    res.json({ message: "Año creado correctamente", nombre });
+
+    res.json({
+      message: "Año creado correctamente",
+      nombre,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error al crear año" });
   }
@@ -35,7 +46,9 @@ const crearAnio = async (req, res) => {
 const obtenerPagosPorAnio = async (req, res) => {
   try {
     const { anio } = req.params;
+
     const pagos = await PagaMes.find({ anio }).sort({ createdAt: -1 });
+
     res.json(pagos);
   } catch (error) {
     res.status(500).json({ message: "Error al obtener pagos" });
@@ -57,7 +70,7 @@ const registrarPagoMes = async (req, res) => {
 
     await nuevoPago.save();
 
-    // Registrar ingreso en contabilidad
+    // Crear registro en contabilidad
     const transaccion = new Contabilidad({
       tipo: "ingreso",
       monto: total,
@@ -67,36 +80,21 @@ const registrarPagoMes = async (req, res) => {
       cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
       cuentaCredito: "Ingresos Mensualidades",
       referencia: `PAGO-${nuevoPago._id}`,
-      metodoPago: tipoPago
+      metodoPago: tipoPago,
     });
 
     await transaccion.save();
 
     res.status(201).json(nuevoPago);
-
   } catch (error) {
-    res.status(500).json({ message: "Error al registrar pago" });
-  }
-};
-    const transaccion = new Contabilidad({
-      tipo: "ingreso",
-      monto: total,
-      fecha: new Date(),
-      descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
-      categoria: "Mensualidades",
-      cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
-      cuentaCredito: "Ingresos Mensualidades",
-      referencia: `PAGO-${nuevoPago._id}`,
-      metodoPago: tipoPago
-    });
-
-    await transaccion.save();
-
-    res.status(201).json(nuevoPago);
-
-  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error al registrar pago" });
   }
 };
 
-module.exports = { obtenerAnios, crearAnio, obtenerPagosPorAnio, registrarPagoMes };
+module.exports = {
+  obtenerAnios,
+  crearAnio,
+  obtenerPagosPorAnio,
+  registrarPagoMes,
+};
