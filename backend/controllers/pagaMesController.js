@@ -1,5 +1,6 @@
 const PagaMes = require("../models/pagaMesModels");
 const Contabilidad = require("../models/Contabilidad");
+const User = require("../models/User");
 
 // Obtener los años registrados
 const obtenerAnios = async (req, res) => {
@@ -92,7 +93,7 @@ const registrarPagoMes = async (req, res) => {
       cuentaCredito: "Ingresos Mensualidades",
       referencia: `PAGO-${nuevoPago._id}`,
       metodoPago: tipoPago,
-      creadoPor: null
+      creadoPor: usuario._id
     });
 
     await transaccion.save();
