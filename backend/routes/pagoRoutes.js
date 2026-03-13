@@ -9,13 +9,9 @@ const { protect, verificarPermisos } = require("../middleware/authMiddleware");
 // Importamos el controlador de mensualidades
 const { registrarMensualidadCompleta, obtenerMensualidadesPorAño } = require("../controllers/mensualidadController");
 
-/* ======================================================
-    🔹 ACTUALIZACIÓN (RUTA ÚNICA)
-====================================================== */
-
-// Cambiamos "/:id" por "/editar/:id" para que el backend no se confunda
+// Actualizar pago - RUTA ÚNICA PARA EVITAR 404
 router.put(
-  "/editar/:id",
+  "/actualizar/:id",
   protect,
   verificarPermisos(["admin", "recepcionista"]),
   async (req, res) => {
@@ -192,6 +188,7 @@ router.post("/mensualidad-completa", protect, verificarPermisos(["admin", "recep
 router.get("/mensualidades/:año", protect, verificarPermisos(["admin", "recepcionista", "user"]), obtenerMensualidadesPorAño);
 
 module.exports = router;
+
 
 
 
