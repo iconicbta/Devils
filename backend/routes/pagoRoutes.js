@@ -181,6 +181,36 @@ router.post(
     }
   }
 );
+// Actualizar pago
+router.put(
+  "/:id",
+  protect,
+  verificarPermisos(["admin", "recepcionista"]),
+  async (req, res) => {
+    try {
+      const pago = await Pago.findById(req.params.id);
+
+      if (!pago) {
+        return res.status(404).json({ mensaje: "Pago no encontrado" });
+      }
+
+      Object.assign(pago, req.body);
+
+      const pagoActualizado = await pago.save();
+
+      res.json({
+        mensaje: "Pago actualizado correctamente",
+        pago: pagoActualizado,
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        mensaje: "Error al actualizar pago",
+        detalle: error.message,
+      });
+    }
+  }
+);
 
 // Obtener por ID
 router.get(
@@ -247,36 +277,7 @@ router.get(
   verificarPermisos(["admin", "recepcionista", "user"]), 
   obtenerMensualidadesPorAño
 );
-// Actualizar pago
-router.put(
-  "/:id",
-  protect,
-  verificarPermisos(["admin", "recepcionista"]),
-  async (req, res) => {
-    try {
-      const pago = await Pago.findById(req.params.id);
-
-      if (!pago) {
-        return res.status(404).json({ mensaje: "Pago no encontrado" });
-      }
-
-      Object.assign(pago, req.body);
-
-      const pagoActualizado = await pago.save();
-
-      res.json({
-        mensaje: "Pago actualizado correctamente",
-        pago: pagoActualizado,
-      });
-
-    } catch (error) {
-      res.status(500).json({
-        mensaje: "Error al actualizar pago",
-        detalle: error.message,
-      });
-    }
-  }
-);
 module.exports = router;
+
 
 
