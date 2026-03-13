@@ -9,18 +9,21 @@ const { protect, verificarPermisos } = require("../middleware/authMiddleware");
 // Importamos el controlador de mensualidades
 const { registrarMensualidadCompleta, obtenerMensualidadesPorAño } = require("../controllers/mensualidadController");
 
-// Actualizar pago - RUTA ÚNICA PARA EVITAR 404
+// Mantenlo arriba de todo en el archivo de rutas
 router.put(
   "/actualizar/:id",
   protect,
   verificarPermisos(["admin", "recepcionista"]),
   async (req, res) => {
     try {
-      const pago = await Pago.findById(req.params.id);
-      if (!pago) return res.status(404).json({ mensaje: "Pago no encontrado" });
-
-      Object.assign(pago, req.body);
-      const pagoActualizado = await pago.save();
+      // Usamos findByIdAndUpdate para una ejecución más directa
+      const pagoActualizado = await Pago.findByIdAndUpdate(
+        req.params.id, 
+        req.body, 
+        { new: true, runValidators: true }
+      );
+      
+      if (!pagoActualizado) return res.status(404).json({ mensaje: "Pago no encontrado" });
 
       res.json({
         mensaje: "Pago actualizado correctamente",
@@ -31,7 +34,6 @@ router.put(
     }
   }
 );
-
 /* ======================================================
    🔹 REPORTES Y RESÚMENES
 ====================================================== */
@@ -188,6 +190,7 @@ router.post("/mensualidad-completa", protect, verificarPermisos(["admin", "recep
 router.get("/mensualidades/:año", protect, verificarPermisos(["admin", "recepcionista", "user"]), obtenerMensualidadesPorAño);
 
 module.exports = router;
+
 
 
 
