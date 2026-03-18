@@ -396,10 +396,15 @@ router.get(
       }).lean();
 
       // Filtrar solo mensualidades
-      const mensualidades = pagos.filter(p =>
-        (p.productoManual || "").toLowerCase().includes("mensual")
-      );
+      const mensualidades = pagos.filter((p) => {
+  const texto = (p.productoManual || "").toLowerCase();
 
+  return (
+    texto.includes("mensual") ||
+    texto.includes("mes") ||
+    texto.includes("cuota")
+  );
+});
       res.json(mensualidades);
 
     } catch (error) {
