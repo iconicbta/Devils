@@ -1,4 +1,4 @@
-  const express = require("express");
+const express = require("express");
 const router = express.Router();
 const Pago = require("../models/Pago");
 const Contabilidad = require("../models/Contabilidad");
@@ -380,51 +380,32 @@ router.post(
 
 // 2. Obtener datos para la tabla de las "X" (por año)
 router.get(
-  "/mensualidades/:anio", 
-  protect, 
-  verificarPermisos(["admin", "recepcionista", "user"]), 
-  obtenerMensualidadesPorAño
-);
-router.post(
-  "/pago-rapido",
+  "/mensualidades/:anio",
   protect,
-  verificarPermisos(["admin", "recepcionista"]),
+  verificarPermisos(["admin", "recepcionista", "user"]),
   async (req, res) => {
     try {
-      const { clienteManual, productoManual, monto, fecha, metodoPago } = req.body;
+      const anio = Number(req.params.anio);
 
-      const pagoGuardado = await new Pago({
-        clienteManual,
-        productoManual,
-        monto: Number(monto),
-        cantidad: 1,
-        fecha: new Date(fecha + "T12:00:00"),
-        metodoPago,
-        creadoPor: req.user._id,
+      const pagos = await Pago.find({
+        fecha: {
+          $gte: new Date(`${anio}-01-01`),
+          $lte: new Date(`${anio}-12-31`)
+        },
         estado: "Completado"
-      }).save();
+      }).lean();
 
-      await new Contabilidad({
-        tipo: "ingreso",
-        monto: Number(monto),
-        fecha: new Date(fecha + "T12:00:00"),
-        descripcion: `Pago rápido - ${clienteManual}`,
-        categoria: "Pago rápido",
-        cuentaDebito: "Caja",
-        cuentaCredito: "Ingresos",
-        referencia: `PAGO-RAPIDO-${pagoGuardado._id}`,
-        creadoPor: req.user._id
-      }).save();
+      // Filtrar solo mensualidades
+      const mensualidades = pagos.filter(p =>
+        (p.productoManual || "").toLowerCase().includes("mensual")
+      );
 
-      res.status(201).json({
-        mensaje: "Pago rápido registrado",
-        pago: pagoGuardado
-      });
+      res.json(mensualidades);
 
     } catch (error) {
-      console.error("ERROR PAGO RAPIDO:", error);
+      console.error("ERROR MENSUALIDADES:", error);
       res.status(500).json({
-        mensaje: "Error al registrar pago rápido",
+        mensaje: "Error obteniendo mensualidades",
         detalle: error.message
       });
     }
