@@ -10,8 +10,8 @@ const reportePagosPorEquipo = async (req, res) => {
     const query = { estado: "Completado" };
 
     if (fechaInicio && fechaFin) {
-      const start = new Date(fechaInicio);
-      const end = new Date(fechaFin);
+     const start = new Date(fechaInicio + "T00:00:00-05:00");
+const end = new Date(fechaFin + "T23:59:59-05:00");
       query.fecha = { $gte: start, $lte: end };
     }
 
