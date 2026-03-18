@@ -385,7 +385,51 @@ router.get(
   verificarPermisos(["admin", "recepcionista", "user"]), 
   obtenerMensualidadesPorAño
 );
+router.post(
+  "/pago-rapido",
+  protect,
+  verificarPermisos(["admin", "recepcionista"]),
+  async (req, res) => {
+    try {
+      const { clienteManual, productoManual, monto, fecha, metodoPago } = req.body;
 
+      const pagoGuardado = await new Pago({
+        clienteManual,
+        productoManual,
+        monto: Number(monto),
+        cantidad: 1,
+        fecha: new Date(fecha + "T12:00:00"),
+        metodoPago,
+        creadoPor: req.user._id,
+        estado: "Completado"
+      }).save();
+
+      await new Contabilidad({
+        tipo: "ingreso",
+        monto: Number(monto),
+        fecha: new Date(fecha + "T12:00:00"),
+        descripcion: `Pago rápido - ${clienteManual}`,
+        categoria: "Pago rápido",
+        cuentaDebito: "Caja",
+        cuentaCredito: "Ingresos",
+        referencia: `PAGO-RAPIDO-${pagoGuardado._id}`,
+        creadoPor: req.user._id
+      }).save();
+
+      res.status(201).json({
+        mensaje: "Pago rápido registrado",
+        pago: pagoGuardado
+      });
+
+    } catch (error) {
+      console.error("ERROR PAGO RAPIDO:", error);
+      res.status(500).json({
+        mensaje: "Error al registrar pago rápido",
+        detalle: error.message
+      });
+    }
+  }
+);
 module.exports = router;
 
 
