@@ -1,20 +1,34 @@
 const mongoose = require("mongoose");
 
 const pagoSchema = new mongoose.Schema({
+  // 🔹 Cliente (opcional para pago rápido)
   cliente: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cliente",
-    required: true,
+    required: false,
   },
+  clienteManual: {
+    type: String,
+  },
+
+  // 🔹 Producto (opcional para pago rápido)
   producto: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Producto",
-    required: true,
+    required: false,
   },
+  productoManual: {
+    type: String,
+  },
+
+  // 🔹 Cantidad (default para pago rápido)
   cantidad: {
     type: Number,
-    required: true,
+    required: false,
+    default: 1,
   },
+
+  // 🔹 Datos obligatorios
   monto: {
     type: Number,
     required: true,
@@ -27,15 +41,18 @@ const pagoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
   creadoPor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
+
   estado: {
     type: String,
-    default: "Completado", // Valor por defecto para nuevos y existentes
+    default: "Completado",
   },
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -46,25 +63,15 @@ const pagoSchema = new mongoose.Schema({
   },
 });
 
-// Middleware para actualizar el campo updatedAt antes de guardar
+// 🔹 Middleware
 pagoSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-// Middleware para actualizar el campo updatedAt antes de una actualización
 pagoSchema.pre("findOneAndUpdate", function (next) {
   this.set({ updatedAt: Date.now() });
   next();
 });
 
-// Script para actualizar pagos existentes (ejecutar manualmente en MongoDB)
-pagoSchema.post("init", function (doc) {
-  if (!doc.estado) {
-    doc.estado = "Completado";
-    doc.save();
-  }
-});
-
 module.exports = mongoose.model("Pago", pagoSchema);
-
