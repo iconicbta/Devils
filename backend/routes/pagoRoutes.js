@@ -380,7 +380,7 @@ router.post(
 
 // 2. Obtener datos para la tabla de las "X" (por año)
 router.get(
-  "/mensualidades/:año", 
+  "/mensualidades/:anio", 
   protect, 
   verificarPermisos(["admin", "recepcionista", "user"]), 
   obtenerMensualidadesPorAño
