@@ -131,10 +131,10 @@ router.post(
       await productoDoc.save();
       const pagoGuardado = await new Pago({
         cliente, producto, cantidad: Number(cantidad), monto: Number(monto),
-        fecha: new Date(fecha), metodoPago, creadoPor: req.user._id, estado: "Completado"
+        fecha: new Date(fecha + "T12:00:00"), metodoPago, creadoPor: req.user._id, estado: "Completado"
       }).save();
       await new Contabilidad({
-        tipo: "ingreso", monto: Number(monto), fecha: new Date(fecha),
+        tipo: "ingreso", monto: Number(monto), fecha: new Date(fecha + "T12:00:00"),
         descripcion: `Pago de cliente`, categoria: "Pago de cliente",
         cuentaDebito: "Caja", cuentaCredito: "Ingresos", referencia: `PAGO-${pagoGuardado._id}`, creadoPor: req.user._id
       }).save();
