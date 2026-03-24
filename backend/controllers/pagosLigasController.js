@@ -84,7 +84,7 @@ const registrarPago = async (req, res) => {
     } = req.body;
 
     // 🆕 CAMBIO: Validar tipoPago como dato requerido
-    if (!nombre || !mes || !diasAsistidos || !total || !tipoPago) {
+    if (!nombre || !mes || diasAsistidos === undefined || total === undefined || !tipoPago) {
       return res.status(400).json({ message: "Faltan datos requeridos (nombre, mes, diasAsistidos, total, tipoPago)" });
     }
     
@@ -99,7 +99,7 @@ const registrarPago = async (req, res) => {
       mes,
       diasAsistidos,
       total,
-      valorDiarioUsado: valorDiarioUsado || total / diasAsistidos,
+      valorDiarioUsado: diasAsistidos > 0 ? (valorDiarioUsado || total / diasAsistidos) : 0,
       diasPagados,
       tipoPago: tipoPago, // 🆕 CAMBIO: Guardar el tipo de pago
     });
