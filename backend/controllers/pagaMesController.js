@@ -2,11 +2,10 @@ const PagaMes = require("../models/pagaMesModels");
 const Contabilidad = require("../models/Contabilidad");
 const User = require("../models/User");
 
-// Obtener los años registrados
+// Obtener los años/meses registrados
 const obtenerAnios = async (req, res) => {
   try {
     const anios = await PagaMes.distinct("anio");
-
     res.json(
       anios
         .sort((a, b) => b - a)
@@ -18,15 +17,14 @@ const obtenerAnios = async (req, res) => {
   }
 };
 
-// Crear año
+// Crear año o mes
 const crearAnio = async (req, res) => {
   try {
     const { nombre } = req.body;
-
     const existe = await PagaMes.findOne({ anio: nombre, nombre: "SYSTEM" });
 
     if (existe) {
-      return res.status(400).json({ message: "El año ya existe" });
+      return res.status(400).json({ message: "El ya existe" });
     }
 
     const registro = new PagaMes({
@@ -38,41 +36,34 @@ const crearAnio = async (req, res) => {
     });
 
     await registro.save();
-
-    res.json({
-      message: "Año creado correctamente",
-      nombre,
-    });
-
+    res.json({ message: "Creado correctamente", nombre });
   } catch (error) {
     console.error("Error crearAnio:", error);
-    res.status(500).json({ message: "Error al crear año" });
+    res.status(500).json({ message: "Error al crear" });
   }
 };
 
-// Obtener pagos por año
+// Obtener pagos por año/mes
 const obtenerPagosPorAnio = async (req, res) => {
   try {
     const { anio } = req.params;
-
     const pagos = await PagaMes.find({ anio }).sort({ createdAt: -1 });
-
     res.json(pagos);
-
   } catch (error) {
     console.error("Error obtenerPagosPorAnio:", error);
     res.status(500).json({ message: "Error al obtener pagos" });
   }
 };
 
-// Registrar pago
+// 🚀 REGISTRAR PAGO (Corregido el error de las llaves)
 const registrarPagoMes = async (req, res) => {
   try {
     const { nombre, anio, total, mesesPagados, tipoPago, diasAsistidos, diasPagados } = req.body;
 
+    // 1. Guardar el pago
     const nuevoPago = new PagaMes({
       nombre: nombre.trim().toUpperCase(),
-      anio, // Sincronizado con el frontend
+      anio,
       total,
       mesesPagados,
       tipoPago,
@@ -81,25 +72,19 @@ const registrarPagoMes = async (req, res) => {
     });
 
     await nuevoPago.save();
-    // ... tu lógica de contabilidad se queda igual ...
-    res.status(201).json(nuevoPago);
-  } catch (error) {
-    res.status(500).json({ message: "Error", error: error.message });
-  }
-};
 
-    // Registrar ingreso en contabilidad
+    // 2. Registrar en contabilidad (Dentro de la función async)
     const transaccion = new Contabilidad({
       tipo: "ingreso",
       monto: total,
       fecha: new Date(),
-      descripcion: `Pago mensual ${nombre} (${mesesPagados.join(", ")})`,
+      descripcion: `Pago Ligas/Mes ${nombre} (${anio})`,
       categoria: "Mensualidades",
       cuentaDebito: tipoPago === "Nequi" ? "Nequi" : "Caja",
       cuentaCredito: "Ingresos Mensualidades",
       referencia: `PAGO-${nuevoPago._id}`,
       metodoPago: tipoPago,
-      creadoPor: usuario._id
+      creadoBy: req.user ? req.user._id : null // Usamos req.user si tienes middleware de auth
     });
 
     await transaccion.save();
@@ -107,14 +92,11 @@ const registrarPagoMes = async (req, res) => {
     res.status(201).json(nuevoPago);
 
   } catch (error) {
-
     console.error("Error registrarPagoMes:", error);
-
     res.status(500).json({
       message: "Error al registrar pago",
       error: error.message
     });
-
   }
 };
 
