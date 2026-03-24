@@ -29,8 +29,12 @@ exports.actualizarUsuario = asyncHandler(async (req, res) => {
   usuario.email = req.body.email || usuario.email;
   usuario.rol = req.body.rol || usuario.rol;
   if (req.body.password) {
-    const salt = await bcrypt.genSalt(10);
-    usuario.password = await bcrypt.hash(req.body.password, salt);
+    const user = new User({
+  nombre,
+  email,
+  password, // SIN HASH
+  rol: rol || "user",
+});
   }
 
   const actualizado = await usuario.save();
