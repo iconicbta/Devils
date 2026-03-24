@@ -3,28 +3,31 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Registrar un nuevo usuario
+// ======================
+// REGISTRAR USUARIO
+// ======================
 const register = async (req, res) => {
   try {
     const { nombre, email, password, rol } = req.body;
+
     if (!nombre || !email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Nombre, email y contraseña son requeridos" });
+      return res.status(400).json({
+        message: "Nombre, email y contraseña son requeridos",
+      });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "El email ya está registrado" });
+      return res.status(400).json({
+        message: "El email ya está registrado",
+      });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    // 🚨 IMPORTANTE: SIN HASH AQUÍ
     const user = new User({
       nombre,
       email,
-      password: hashedPassword,
+      password, // el modelo se encarga del hash
       rol: rol || "user",
     });
 
@@ -46,7 +49,7 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error al registrar usuario:", error.message);
+    console.error("🔥 Error en register:", error);
     res.status(500).json({
       message: "Error al registrar usuario",
       detalle: error.message,
@@ -54,33 +57,45 @@ const register = async (req, res) => {
   }
 };
 
-// Iniciar sesión
+// ======================
+// LOGIN
+// ======================
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Estos logs aparecerán en el panel de RENDER cuando intentes entrar
-    console.log("📩 Intento de login con:", email); 
+
+    console.log("📩 Email recibido:", email);
+    console.log("🔑 Password recibido:", password);
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email y contraseña son requeridos" });
+      return res.status(400).json({
+        message: "Email y contraseña son requeridos",
+      });
     }
 
-    // Busqueda insensible a mayúsculas/minúsculas
-    const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') }).select("+password");
-    
+    const user = await User.findOne({
+      email: new RegExp(`^${email}$`, "i"),
+    });
+
     if (!user) {
-      console.log("❌ Usuario no encontrado en la base de datos");
-      return res.status(400).json({ message: "Credenciales inválidas" });
+      console.log("❌ Usuario no encontrado");
+      return res.status(400).json({
+        message: "Credenciales inválidas",
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    
+    console.log("🧠 Password en BD:", user.password);
+
+    // ✅ usar método del modelo
+    const isMatch = await user.compararPassword(password);
+
+    console.log("✅ Resultado compare:", isMatch);
+
     if (!isMatch) {
       console.log("❌ La contraseña no coincide");
-      return res.status(400).json({ message: "Credenciales inválidas" });
+      return res.status(400).json({
+        message: "Credenciales inválidas",
+      });
     }
 
     const token = jwt.sign(
@@ -89,7 +104,7 @@ const login = async (req, res) => {
       { expiresIn: "30d" }
     );
 
-    console.log("✅ Login exitoso para:", user.email);
+    console.log("✅ Login exitoso:", user.email);
 
     res.json({
       token,
@@ -101,7 +116,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("🔥 Error crítico en login:", error.message);
+    console.error("🔥 Error en login:", error);
     res.status(500).json({
       message: "Error al iniciar sesión",
       detalle: error.message,
@@ -109,13 +124,19 @@ const login = async (req, res) => {
   }
 };
 
-// Obtener los datos del usuario autenticado
+// ======================
+// GET ME
+// ======================
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
+
     if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
     }
+
     res.json({
       id: user._id,
       nombre: user.nombre,
@@ -123,7 +144,7 @@ const getMe = async (req, res) => {
       rol: user.rol,
     });
   } catch (error) {
-    console.error("Error al obtener datos del usuario:", error.message);
+    console.error("Error en getMe:", error);
     res.status(500).json({
       message: "Error al obtener datos del usuario",
       detalle: error.message,
@@ -131,32 +152,46 @@ const getMe = async (req, res) => {
   }
 };
 
-// Actualizar datos del usuario autenticado
+// ======================
+// UPDATE
+// ======================
 const update = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
     const userId = req.user.id;
 
     const user = await User.findById(userId);
+
     if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
     }
 
     if (nombre) user.nombre = nombre;
+
     if (email) {
-      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      const emailExists = await User.findOne({
+        email,
+        _id: { $ne: userId },
+      });
+
       if (emailExists) {
-        return res.status(400).json({ message: "El email ya está en uso" });
+        return res.status(400).json({
+          message: "El email ya está en uso",
+        });
       }
+
       user.email = email;
     }
 
+    // 🚨 SIN HASH AQUÍ
     if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+      user.password = password;
     }
 
     await user.save();
+
     res.json({
       message: "Usuario actualizado con éxito",
       user: {
@@ -167,7 +202,7 @@ const update = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error al actualizar usuario:", error.message);
+    console.error("Error en update:", error);
     res.status(500).json({
       message: "Error al actualizar usuario",
       detalle: error.message,
