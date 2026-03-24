@@ -68,20 +68,25 @@ const obtenerPagosPorAnio = async (req, res) => {
 // Registrar pago
 const registrarPagoMes = async (req, res) => {
   try {
-
-    const { nombre, anio, plan, total, mesesPagados, tipoPago } = req.body;
+    const { nombre, anio, total, mesesPagados, tipoPago, diasAsistidos, diasPagados } = req.body;
 
     const nuevoPago = new PagaMes({
       nombre: nombre.trim().toUpperCase(),
-      anio,
-      plan,
+      anio, // Sincronizado con el frontend
       total,
       mesesPagados,
       tipoPago,
+      diasAsistidos,
+      diasPagados
     });
 
     await nuevoPago.save();
-    const usuario = await User.findOne();
+    // ... tu lógica de contabilidad se queda igual ...
+    res.status(201).json(nuevoPago);
+  } catch (error) {
+    res.status(500).json({ message: "Error", error: error.message });
+  }
+};
 
     // Registrar ingreso en contabilidad
     const transaccion = new Contabilidad({
