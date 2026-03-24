@@ -7,87 +7,80 @@ const resumenGeneral = async (req, res) => {
     const { fechaInicio, fechaFin } = req.query;
 
     if (!fechaInicio || !fechaFin) {
-      return res.status(400).json({ message: "fechaInicio y fechaFin son requeridos" });
+      return res.status(400).json({ message: "Fechas requeridas" });
     }
 
     const start = new Date(fechaInicio);
     const end = new Date(fechaFin);
+    end.setHours(23,59,59,999);
 
-    // =========================
-    // 1. PAGOS NORMALES
-    // =========================
-    const pagosAgg = await Pago.aggregate([
-      {
-        $match: {
-          estado: "Completado",
-          fecha: { $gte: start, $lte: end },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$monto" },
-        },
-      },
-    ]);
+    // 🔹 PAGOS (USAR fecha)
+    const pagos = await Pago.find({
+      estado: "Completado",
+      fecha: { $gte: start, $lte: end }
+    });
 
-    const totalPagos = pagosAgg[0]?.total || 0;
+    let productos = { total:0, efectivo:0, transferencia:0, tarjeta:0 };
 
-    // =========================
-    // 2. PAGOS LIGAS
-    // =========================
-    const ligasAgg = await PagoLigaMes.aggregate([
-      {
-        $match: {
-          tipoPago: { $ne: "SYSTEM" },
-          createdAt: { $gte: start, $lte: end },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$total" },
-        },
-      },
-    ]);
+    pagos.forEach(p => {
+      const monto = Number(p.monto) || 0;
+      productos.total += monto;
 
-    const totalLigas = ligasAgg[0]?.total || 0;
+      if(p.metodoPago === "Efectivo") productos.efectivo += monto;
+      else if(p.metodoPago === "Transferencia") productos.transferencia += monto;
+      else if(p.metodoPago === "Tarjeta") productos.tarjeta += monto;
+    });
 
-    // =========================
-    // 3. PAGOS MES
-    // =========================
-    const pagosMesAgg = await PagaMes.aggregate([
-      {
-        $match: {
-          tipoPago: { $ne: "SYSTEM" },
-          createdAt: { $gte: start, $lte: end },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$total" },
-        },
-      },
-    ]);
+    // 🔹 LIGAS
+    const ligasData = await PagoLigaMes.find({
+      tipoPago: { $ne:"SYSTEM" },
+      createdAt: { $gte:start, $lte:end }
+    });
 
-    const totalPagosMes = pagosMesAgg[0]?.total || 0;
+    let ligas = { total:0, efectivo:0, transferencia:0, tarjeta:0 };
 
-    // =========================
-    // TOTAL GENERAL
-    // =========================
-    const total = totalPagos + totalLigas + totalPagosMes;
+    ligasData.forEach(p => {
+      const monto = Number(p.total) || 0;
+      ligas.total += monto;
+
+      const metodo = (p.tipoPago || "").toLowerCase();
+
+      if(metodo === "efectivo") ligas.efectivo += monto;
+      else if(metodo === "nequi" || metodo === "transferencia") ligas.transferencia += monto;
+      else if(metodo === "tarjeta") ligas.tarjeta += monto;
+    });
+
+    // 🔹 MENSUALIDADES
+    const mensualidadesData = await PagaMes.find({
+      tipoPago: { $ne:"SYSTEM" },
+      createdAt: { $gte:start, $lte:end }
+    });
+
+    let mensualidades = { total:0, efectivo:0, transferencia:0, tarjeta:0 };
+
+    mensualidadesData.forEach(p => {
+      const monto = Number(p.total) || 0;
+      mensualidades.total += monto;
+
+      const metodo = (p.tipoPago || "").toLowerCase();
+
+      if(metodo === "efectivo") mensualidades.efectivo += monto;
+      else if(metodo === "nequi" || metodo === "transferencia") mensualidades.transferencia += monto;
+      else if(metodo === "tarjeta") mensualidades.tarjeta += monto;
+    });
+
+    const totalGeneral = productos.total + ligas.total + mensualidades.total;
 
     res.json({
-      pagos: totalPagos,
-      ligas: totalLigas,
-      pagosMes: totalPagosMes,
-      total,
+      productos,
+      ligas,
+      mensualidades,
+      totalGeneral
     });
 
   } catch (error) {
-    console.error("Error resumen general:", error);
-    res.status(500).json({ message: "Error al generar resumen general" });
+    console.error(error);
+    res.status(500).json({ message:"Error resumen" });
   }
 };
 
