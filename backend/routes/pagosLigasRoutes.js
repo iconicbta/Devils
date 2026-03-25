@@ -4,6 +4,7 @@ const {
   obtenerMeses,
   crearMes,
   obtenerPagosPorMes,
+  obtenerTodosPagosLigas, // 👈 NUEVO
   registrarPago,
   actualizarValorDiario,
 } = require("../controllers/pagosLigasController");
@@ -36,6 +37,7 @@ router.put("/configuracion", async (req, res) => {
 // RUTAS DE PAGOS LIGAS → SIN auth para que Render no se caiga
 router.get("/meses", obtenerMeses);
 router.post("/crear-mes", crearMes);
+router.get("/pagos-ligas", obtenerTodosPagosLigas);
 router.get("/pagos/:mes", obtenerPagosPorMes);
 router.post("/pagos", registrarPago);
 router.delete("/pagos/:id", async (req, res) => {
