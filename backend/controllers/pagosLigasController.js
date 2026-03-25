@@ -110,7 +110,7 @@ const registrarPago = async (req, res) => {
     } = req.body;
 
     // 🆕 CAMBIO: Validar tipoPago como dato requerido
-    if (!nombre || !mes || !diasAsistidos || !total || !tipoPago) {
+    if (!nombre || !mes || diasAsistidos === undefined || total === undefined || !tipoPago) {
       return res.status(400).json({ message: "Faltan datos requeridos (nombre, mes, diasAsistidos, total, tipoPago)" });
     }
     
