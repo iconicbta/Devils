@@ -78,18 +78,16 @@ const cierreDiario = async (req, res) => {
     const { fecha } = req.query; // Recibe "2026-03-25"
     if (!fecha) return res.status(400).json({ message: "fecha es requerida" });
 
-    // Dividimos el string para evitar problemas de zona horaria (Y, M-1, D)
+    // 1. Forzamos la creación de la fecha en la zona horaria local del servidor
     const [year, month, day] = fecha.split('-').map(Number);
     
-    // Creamos la fecha localmente
+    // Mes - 1 porque en JS los meses van de 0 a 11
     const start = new Date(year, month - 1, day, 0, 0, 0, 0);
     const end = new Date(year, month - 1, day, 23, 59, 59, 999);
 
     const filter = { createdAt: { $gte: start, $lte: end } };
 
-    
-
-    // PRODUCTOS
+    // --- PRODUCTOS ---
     const pProd = await Pago.find({ ...filter, estado: "Completado" });
     let productos = { total: 0, efectivo: 0, transferencia: 0, tarjeta: 0 };
     pProd.forEach(p => {
@@ -101,11 +99,11 @@ const cierreDiario = async (req, res) => {
       else if (met === "tarjeta") productos.tarjeta += m;
     });
 
-    // LIGAS
+    // --- LIGAS ---
     const pLig = await PagoLigaMes.find({ ...filter, tipoPago: { $ne: "SYSTEM" } });
     let ligas = { total: 0, efectivo: 0, transferencia: 0, tarjeta: 0 };
     pLig.forEach(p => {
-      const m = Number(p.total) || 0;
+      const m = Number(p.total) || 0; // Verifica que sea .total y no .monto
       ligas.total += m;
       const met = (p.tipoPago || "").toLowerCase().trim();
       if (met === "efectivo") ligas.efectivo += m;
@@ -113,7 +111,7 @@ const cierreDiario = async (req, res) => {
       else if (met === "tarjeta") ligas.tarjeta += m;
     });
 
-    // MENSUALIDADES
+    // --- MENSUALIDADES ---
     const pMens = await PagaMes.find({ ...filter, nombre: { $ne: "SYSTEM" }, tipoPago: { $ne: "SYSTEM" } });
     let mensualidades = { total: 0, efectivo: 0, transferencia: 0, tarjeta: 0 };
     pMens.forEach(p => {
@@ -137,5 +135,3 @@ const cierreDiario = async (req, res) => {
     res.status(500).json({ message: "Error cierre diario" });
   }
 };
-
-module.exports = { resumenGeneral, cierreDiario };
