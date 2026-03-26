@@ -64,20 +64,11 @@ const resumenGeneral = async (req, res) => {
       const met = (p.tipoPago || "").toLowerCase().trim();
 
       // 🔥 FIX: si vienen como ligas, las sumamos en ligas
-      if (p.equipo === "Ligas") {
-        ligas.total += monto;
+      mensualidades.total += monto;
 
-        if (met === "efectivo") ligas.efectivo += monto;
-        else if (met === "transferencia" || met === "nequi") ligas.transferencia += monto;
-        else if (met === "tarjeta") ligas.tarjeta += monto;
-
-      } else {
-        mensualidades.total += monto;
-
-        if (met === "efectivo") mensualidades.efectivo += monto;
-        else if (met === "transferencia" || met === "nequi") mensualidades.transferencia += monto;
-        else if (met === "tarjeta") mensualidades.tarjeta += monto;
-      }
+if (met === "efectivo") mensualidades.efectivo += monto;
+else if (met === "transferencia" || met === "nequi") mensualidades.transferencia += monto;
+else if (met === "tarjeta") mensualidades.tarjeta += monto;
     });
 
     res.json({
@@ -154,20 +145,11 @@ const cierreDiario = async (req, res) => {
       const m = Number(p.total) || 0;
       const met = (p.tipoPago || "").toLowerCase().trim();
 
-      if (p.equipo === "Ligas") {
-        ligas.total += m;
+      mensualidades.total += m;
 
-        if (met === "efectivo") ligas.efectivo += m;
-        else if (met === "transferencia" || met === "nequi") ligas.transferencia += m;
-        else if (met === "tarjeta") ligas.tarjeta += m;
-
-      } else {
-        mensualidades.total += m;
-
-        if (met === "efectivo") mensualidades.efectivo += m;
-        else if (met === "transferencia" || met === "nequi") mensualidades.transferencia += m;
-        else if (met === "tarjeta") mensualidades.tarjeta += m;
-      }
+if (met === "efectivo") mensualidades.efectivo += m;
+else if (met === "transferencia" || met === "nequi") mensualidades.transferencia += m;
+else if (met === "tarjeta") mensualidades.tarjeta += m;
     });
 
     console.log("📊 Productos:", pProd.length);
