@@ -75,15 +75,19 @@ const resumenGeneral = async (req, res) => {
 
 const cierreDiario = async (req, res) => {
   try {
-    const { fecha } = req.query;
+    const { fecha } = req.query; // Recibe "2026-03-25"
     if (!fecha) return res.status(400).json({ message: "fecha es requerida" });
 
-    const start = new Date(fecha);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(fecha);
-    end.setHours(23, 59, 59, 999);
+    // Dividimos el string para evitar problemas de zona horaria (Y, M-1, D)
+    const [year, month, day] = fecha.split('-').map(Number);
+    
+    // Creamos la fecha localmente
+    const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+    const end = new Date(year, month - 1, day, 23, 59, 59, 999);
 
     const filter = { createdAt: { $gte: start, $lte: end } };
+
+    
 
     // PRODUCTOS
     const pProd = await Pago.find({ ...filter, estado: "Completado" });
