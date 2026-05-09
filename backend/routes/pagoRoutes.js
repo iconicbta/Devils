@@ -380,42 +380,12 @@ router.post(
 
 // 2. Obtener datos para la tabla de las "X" (por año)
 router.get(
-  "/mensualidades/:anio",
-  protect,
-  verificarPermisos(["admin", "recepcionista", "user"]),
-  async (req, res) => {
-    try {
-      const anio = Number(req.params.anio);
-
-      const pagos = await Pago.find({
-        fecha: {
-          $gte: new Date(`${anio}-01-01`),
-          $lte: new Date(`${anio}-12-31`)
-        },
-        estado: "Completado"
-      }).lean();
-
-      // Filtrar solo mensualidades
-      const mensualidades = pagos.filter((p) => {
-  const texto = (p.productoManual || "").toLowerCase();
-
-  return (
-    texto.includes("mensual") ||
-    texto.includes("mes") ||
-    texto.includes("cuota")
-  );
-});
-      res.json(mensualidades);
-
-    } catch (error) {
-      console.error("ERROR MENSUALIDADES:", error);
-      res.status(500).json({
-        mensaje: "Error obteniendo mensualidades",
-        detalle: error.message
-      });
-    }
-  }
+  "/mensualidades/:año", 
+  protect, 
+  verificarPermisos(["admin", "recepcionista", "user"]), 
+  obtenerMensualidadesPorAño
 );
+
 module.exports = router;
 
 
