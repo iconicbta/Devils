@@ -4,7 +4,6 @@ const {
   obtenerMeses,
   crearMes,
   obtenerPagosPorMes,
-  obtenerTodosPagosLigas, // 👈 NUEVO
   registrarPago,
   actualizarValorDiario,
 } = require("../controllers/pagosLigasController");
@@ -37,7 +36,6 @@ router.put("/configuracion", async (req, res) => {
 // RUTAS DE PAGOS LIGAS → SIN auth para que Render no se caiga
 router.get("/meses", obtenerMeses);
 router.post("/crear-mes", crearMes);
-router.get("/pagos-ligas", obtenerTodosPagosLigas);
 router.get("/pagos/:mes", obtenerPagosPorMes);
 router.post("/pagos", registrarPago);
 router.delete("/pagos/:id", async (req, res) => {
@@ -52,5 +50,13 @@ router.delete("/pagos/:id", async (req, res) => {
 });
 
 router.put("/valor-diario", actualizarValorDiario);
-
+router.put("/pagos/:id", async (req, res) => {
+  const PagoLigaMes = require("../models/PagoLigaMes");
+  try {
+    const actualizado = await PagoLigaMes.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(actualizado);
+  } catch (error) {
+    res.status(500).json({ message: "Error al actualizar" });
+  }
+});
 module.exports = router;   
