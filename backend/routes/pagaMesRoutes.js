@@ -7,8 +7,6 @@ const {
     registrarPagoMes 
 } = require("../controllers/pagaMesController");
 
-
-
 router.get("/anios", obtenerAnios);
 router.post("/crear-anio", crearAnio);
 router.get("/pagos/:anio", obtenerPagosPorAnio);
